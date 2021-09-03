@@ -10,34 +10,52 @@ class Zoom {
               zoomImage = this.params.imageSelector? object.querySelector(this.params.imageSelector): object.querySelector('img'),
               params = this.params;
 
-        const cssParams = Object.entries(params.css);
-        cssParams.forEach(item => {
-            zoomCursor.style[item[0]] = item[1];
-        })
-
         if (!params.custom) {
-            setDefaultCss();
+            zoomCursor.style.cssText = `
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+        `
+        }
+        setDefaultCss();
+
+        if (params.css) {
+            const cssParams = Object.entries(params.css);
+            cssParams.forEach(item => {
+                zoomCursor.style[item[0]] = item[1];
+            })
+        }
+
+
+        if (params.hideCursor) {
+            zoomCursor.addEventListener('mouseout', hideCursor)
         }
 
         zoomWrapper.addEventListener('mousemove', initZoom);
 
         function initZoom(event) {
+            event.preventDefault();
             const cursorHeight = zoomCursor.clientHeight / 2,
+                  target = event.target,
                   cursorWidth = zoomCursor.clientWidth / 2,
                   pos = getCursorPos(event),
-                  zoom = params.zoom,
+                  zoom = params.zoom || 2,
                   cursorPositionX = event.offsetX - cursorWidth + 'px',
                   cursorPositionY= event.offsetY - cursorHeight + 'px';
 
-            event.preventDefault();
+
             zoomCursor.style.left = cursorPositionX;
             zoomCursor.style.top = cursorPositionY;
             zoomCursor.style.opacity = '1'
             zoomCursor.style.backgroundImage = `url('${zoomImage.src}')`
             zoomCursor.style.backgroundRepeat = "no-repeat";
             zoomCursor.style.backgroundSize = (zoomImage.width * zoom) + "px " + (zoomImage.height * zoom) + "px";
-            zoomCursor.style.backgroundPosition = '-' + ((pos.x * zoom) - cursorWidth + zoom) + "px -" + ((pos.y * zoom) - cursorHeight + zoom) + "px"
+            zoomCursor.style.backgroundPosition = '-' + ((pos.x * zoom) - cursorWidth + zoom) + "px -" + ((pos.y * zoom) - cursorHeight + zoom) + "px";
 
+        }
+
+        function hideCursor() {
+            zoomCursor.style.opacity = '0'
         }
 
         function getCursorPos(event) {
